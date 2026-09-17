@@ -1,0 +1,5 @@
+{
+  "data": [
+    { "orderId": "1187", "total": 149.9, "currency": "EUR", "customer": { "name": "Acme GmbH", "vat": null }, "items": [{ "sku": "HS-001", "qty": 2, "warehouse": "DE-1" }], "channel": "web" }
+  ]
+}

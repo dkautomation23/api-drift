@@ -1,0 +1,6 @@
+{
+  "data": [
+    { "order_id": "1043", "total": "149.90", "currency": "EUR", "customer": { "name": "Acme GmbH", "vat": "DE123456789" }, "items": [{ "sku": "HS-001", "qty": 2 }] },
+    { "order_id": "1044", "total": "19.00", "currency": "EUR", "customer": { "name": "Northwind", "vat": "GB987654321" }, "items": [{ "sku": "HS-014", "qty": 1 }], "coupon": "WELCOME" }
+  ]
+}

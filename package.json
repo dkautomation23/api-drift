@@ -3,18 +3,35 @@
   "version": "0.1.0",
   "description": "Notice when a partner API changes shape - before it breaks the automation that reads it.",
   "type": "module",
-  "bin": { "api-drift": "dist/src/cli.js" },
-  "files": ["dist/src"],
-  "engines": { "node": ">=20" },
+  "bin": {
+    "api-drift": "dist/src/cli.js"
+  },
+  "files": [
+    "dist/src"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "tsc",
     "test": "npm run build && node --test \"dist/test/**/*.test.js\"",
     "start": "node dist/src/cli.js"
   },
-  "keywords": ["api", "schema", "monitoring", "contract-testing", "integration", "cli", "breaking-changes"],
+  "keywords": [
+    "api",
+    "schema",
+    "monitoring",
+    "contract-testing",
+    "integration",
+    "cli",
+    "breaking-changes"
+  ],
   "license": "MIT",
   "author": "Dmytro Galko",
-  "repository": { "type": "git", "url": "git+https://github.com/dkautomation23/api-drift.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dkautomation23/api-drift.git"
+  },
   "devDependencies": {
     "@types/node": "^22.10.0",
     "typescript": "^5.7.0"

@@ -109,7 +109,7 @@ npm run build
 node dist/src/cli.js --help
 ```
 
-Node 20+. Auth goes in `--header`, repeatable, never into the baseline file.
+Node 22+. Auth goes in `--header`, repeatable, never into the baseline file.
 
 | Flag | Meaning |
 | --- | --- |

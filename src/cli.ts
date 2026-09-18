@@ -37,7 +37,13 @@ function parse(argv: string[]): Args {
   const many = new Map<string, string[]>();
   const bools = new Set<string>();
 
-  for (let i = 1; i < argv.length; i += 1) {
+  // `api-drift --help` puts a flag where a command goes. Someone typing that
+  // wants the usage text, not a complaint about an unknown command.
+  const leading = argv[0] ?? "";
+  const isFlag = leading.startsWith("-");
+  if (leading === "-h") bools.add("help");
+
+  for (let i = isFlag ? 0 : 1; i < argv.length; i += 1) {
     const token = argv[i]!;
     if (!token.startsWith("--")) continue;
     const name = token.slice(2);
@@ -50,7 +56,7 @@ function parse(argv: string[]): Args {
       i += 1;
     }
   }
-  return { command: argv[0] ?? "", flags, many, bools };
+  return { command: isFlag ? "" : leading, flags, many, bools };
 }
 
 function fail(message: string): never {
@@ -85,9 +91,11 @@ function fetchOptions(args: Args): FetchOptions {
 
 async function main(): Promise<number> {
   const args = parse(process.argv.slice(2));
-  if (!args.command || args.command === "help" || args.bools.has("help")) {
+  // Asking for help is not a mistake; typing nothing at all is.
+  const askedForHelp = args.command === "help" || args.bools.has("help");
+  if (!args.command || askedForHelp) {
     process.stdout.write(USAGE);
-    return args.command ? 0 : 2;
+    return askedForHelp ? 0 : 2;
   }
 
   const path = args.flags.get("baseline") ?? "api-drift.json";

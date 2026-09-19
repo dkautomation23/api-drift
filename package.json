@@ -1,5 +1,5 @@
 {
-  "name": "api-drift",
+  "name": "api-shape-drift",
   "version": "0.1.0",
   "description": "Notice when a partner API changes shape - before it breaks the automation that reads it.",
   "keywords": [

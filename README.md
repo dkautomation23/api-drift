@@ -3,6 +3,7 @@
 [![CI](https://github.com/dkautomation23/api-drift/actions/workflows/ci.yml/badge.svg)](https://github.com/dkautomation23/api-drift/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/dkautomation23/api-drift/badge)](https://scorecard.dev/viewer/?uri=github.com/dkautomation23/api-drift)
 [![CodeQL](https://github.com/dkautomation23/api-drift/actions/workflows/codeql.yml/badge.svg)](https://github.com/dkautomation23/api-drift/actions/workflows/codeql.yml)
+[![npm](https://img.shields.io/npm/v/api-shape-drift)](https://www.npmjs.com/package/api-shape-drift)
 
 Records the **shape** of a JSON API and tells you when it changes — before the
 automation reading it quietly starts writing rubbish.
@@ -14,6 +15,13 @@ api-drift check                 # exit 1 when something breaking changed
 
 No runtime dependencies. TypeScript, Node's own test runner, 31 tests.
 
+Every published version is built and published by the workflow in this
+repository, never from a laptop, and carries a provenance statement recorded in
+Sigstore's public transparency log. Anyone can check that before trusting it:
+
+```bash
+npm audit signatures
+```
 
 <sup>The npm package is `api-shape-drift`: npm refuses both `api-drift` and
 `api-drift-cli` as too close to packages that already exist. The command it

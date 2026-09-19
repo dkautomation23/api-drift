@@ -1,6 +1,8 @@
 # api-drift
 
 [![CI](https://github.com/dkautomation23/api-drift/actions/workflows/ci.yml/badge.svg)](https://github.com/dkautomation23/api-drift/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/dkautomation23/api-drift/badge)](https://scorecard.dev/viewer/?uri=github.com/dkautomation23/api-drift)
+[![CodeQL](https://github.com/dkautomation23/api-drift/actions/workflows/codeql.yml/badge.svg)](https://github.com/dkautomation23/api-drift/actions/workflows/codeql.yml)
 
 Records the **shape** of a JSON API and tells you when it changes — before the
 automation reading it quietly starts writing rubbish.
@@ -10,7 +12,7 @@ api-drift record --name orders --source https://api.example.com/orders --pick da
 api-drift check                 # exit 1 when something breaking changed
 ```
 
-No runtime dependencies. TypeScript, Node's own test runner, 25 tests.
+No runtime dependencies. TypeScript, Node's own test runner, 31 tests.
 
 ## Why
 
@@ -104,7 +106,7 @@ error document.
 git clone https://github.com/dkautomation23/api-drift.git
 cd api-drift
 npm install
-npm test          # 25 tests, no network beyond localhost
+npm test          # 31 tests, no network beyond localhost
 npm run build
 node dist/src/cli.js --help
 ```

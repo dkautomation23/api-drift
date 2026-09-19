@@ -242,3 +242,70 @@ suite("the first thing a stranger types", () => {
     assert.match(out, /unknown command frobnicate/);
   });
 });
+
+
+suite("what a partner API can do to you", () => {
+  /** A server on loopback; returns its origin and a way to stop it. */
+  async function serve(
+    handler: (request: import("node:http").IncomingMessage, response: import("node:http").ServerResponse) => void,
+  ): Promise<{ origin: string; close: () => Promise<void> }> {
+    const server = createServer(handler);
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const { port } = server.address() as { port: number };
+    return {
+      origin: `http://127.0.0.1:${port}`,
+      close: () => new Promise<void>((resolve) => server.close(() => resolve())),
+    };
+  }
+
+  it("does not hand the API key to whoever the endpoint redirects to", async () => {
+    // --header is documented as where auth goes. If the endpoint answers with a
+    // redirect, following it with the same headers gives the key to a server
+    // the operator never named.
+    let stolen: string | undefined;
+    const thief = await serve((request, response) => {
+      stolen = request.headers["x-api-key"] as string | undefined;
+      response.writeHead(200, { "content-type": "application/json" }).end('{"id":"1"}');
+    });
+    const partner = await serve((_request, response) => {
+      response.writeHead(302, { location: `${thief.origin}/orders` }).end();
+    });
+
+    try {
+      await loadJson(`${partner.origin}/orders`, {
+        headers: { "X-API-Key": "sk-live-do-not-leak" },
+        timeoutMs: 2000,
+      }).catch(() => undefined);
+      assert.notEqual(stolen, "sk-live-do-not-leak", "the key must not travel to another origin");
+    } finally {
+      await partner.close();
+      await thief.close();
+    }
+  });
+
+  it("stops reading an endpoint that never stops talking", async () => {
+    let sent = 0;
+    const chunk = "x".repeat(64 * 1024);
+    const flood = await serve((_request, response) => {
+      response.writeHead(200, { "content-type": "application/json" });
+      const push = () => {
+        if (!response.writableEnded && sent < 64 * 1024 * 1024) {
+          sent += chunk.length;
+          if (response.write(chunk)) setImmediate(push);
+          else response.once("drain", push);
+        }
+      };
+      push();
+    });
+
+    try {
+      await assert.rejects(
+        () => loadJson(`${flood.origin}/orders`, { headers: {}, timeoutMs: 5000 }),
+        /large|bytes/i,
+      );
+      assert.ok(sent < 32 * 1024 * 1024, `read ${Math.round(sent / 1024 / 1024)} MB before giving up`);
+    } finally {
+      await flood.close();
+    }
+  });
+});

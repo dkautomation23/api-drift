@@ -41,17 +41,86 @@ export async function loadJson(source: string, options: FetchOptions): Promise<u
   return pickPath(parsed, options.pick);
 }
 
+/** A shape is kilobytes of JSON; anything past this is not one. */
+export const MAX_RESPONSE_BYTES = 16 * 1024 * 1024;
+
+const MAX_REDIRECTS = 5;
+const REDIRECT_STATUS = new Set([301, 302, 303, 307, 308]);
+
+/**
+ * Follows redirects by hand, and takes the credentials off at the border.
+ *
+ * `--header "Authorization: ..."` is documented as where auth goes. Letting
+ * fetch follow a redirect with those headers attached means a partner's 302 -
+ * or an attacker who can influence one - receives the operator's API key. The
+ * key is for the host the operator named, and nobody else.
+ */
 async function get(url: string, options: FetchOptions): Promise<string> {
-  const response = await fetch(url, {
-    headers: { accept: "application/json", ...options.headers },
-    signal: AbortSignal.timeout(options.timeoutMs),
-  });
+  let current = url;
+  const origin = new URL(url).origin;
+  let response: Response | undefined;
+
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
+    const sameOrigin = new URL(current).origin === origin;
+    response = await fetch(current, {
+      headers: sameOrigin
+        ? { accept: "application/json", ...options.headers }
+        : { accept: "application/json" },
+      redirect: "manual",
+      signal: AbortSignal.timeout(options.timeoutMs),
+    });
+
+    if (!REDIRECT_STATUS.has(response.status)) break;
+    const location = response.headers.get("location");
+    if (!location) break;
+    await response.body?.cancel();
+    current = new URL(location, current).toString();
+    response = undefined;
+  }
+
+  if (!response) {
+    throw new Error(`${url} sent more than ${MAX_REDIRECTS} redirects; giving up`);
+  }
   if (!response.ok) {
     // A 500 is not drift, it is an outage, and calling it drift would rewrite a
     // perfectly good baseline with an error page.
     throw new Error(`${url} answered ${response.status} ${response.statusText}`);
   }
-  return response.text();
+
+  return readCapped(response, MAX_RESPONSE_BYTES, url);
+}
+
+/**
+ * Reads at most `limit` bytes.
+ *
+ * `response.text()` buffers whatever arrives before any check can run, so an
+ * endpoint that never stops talking costs the machine its memory rather than
+ * the caller a clear error.
+ */
+async function readCapped(response: Response, limit: number, url: string): Promise<string> {
+  if (!response.body) return "";
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let text = "";
+  let bytes = 0;
+
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > limit) {
+        await reader.cancel();
+        throw new Error(`${url} returned more than ${limit} bytes; that is too large to be a response shape`);
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  return text + decoder.decode();
 }
 
 /** `Name: value` pairs from the command line into a header map. */

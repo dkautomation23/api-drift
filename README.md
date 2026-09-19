@@ -14,6 +14,11 @@ api-drift check                 # exit 1 when something breaking changed
 
 No runtime dependencies. TypeScript, Node's own test runner, 31 tests.
 
+
+<sup>The npm package is `api-shape-drift`: npm refuses both `api-drift` and
+`api-drift-cli` as too close to packages that already exist. The command it
+installs is still `api-drift`, and what it watches is the shape of a response.</sup>
+
 ## Why
 
 Integrations rarely break with an error. A partner renames `order_id` to
@@ -92,7 +97,7 @@ on it.
 `check` exits `1` on a breaking change and `0` otherwise, so it needs no wrapper:
 
 ```yaml
-- run: npx api-drift check --header "Authorization: Bearer ${{ secrets.PARTNER_TOKEN }}"
+- run: npx api-shape-drift check --header "Authorization: Bearer ${{ secrets.PARTNER_TOKEN }}"
 ```
 
 An endpoint that is *down* is not drift: a non-2xx answer, or a body that is not
